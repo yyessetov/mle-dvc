@@ -3,7 +3,8 @@
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from category_encoders import CatBoostEncoder
+#from category_encoders import CatBoostEncoder
+from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from catboost import CatBoostClassifier
 import yaml
@@ -22,23 +23,22 @@ def fit_model():
 	# реализуйте основную логику шага с использованием гиперпараметров
     data.drop(columns=['id', 'begin_date', 'end_date'], inplace=True)
     cat_features = data.select_dtypes(include='object')
-    potential_binary_features = cat_features.nunique() == 2
+    #potential_binary_features = cat_features.nunique() == 2
 
-    binary_cat_features = cat_features[potential_binary_features[potential_binary_features].index]
-    other_cat_features = cat_features[potential_binary_features[~potential_binary_features].index]
+    #binary_cat_features = cat_features[potential_binary_features[potential_binary_features].index]
+    #other_cat_features = cat_features[potential_binary_features[~potential_binary_features].index]
     num_features = data.select_dtypes(['float'])
 
     preprocessor = ColumnTransformer(
         [
-        ('binary', OneHotEncoder(drop='if_binary'), binary_cat_features.columns.tolist()),
-        ('cat', CatBoostEncoder(return_df=False), other_cat_features.columns.tolist()),
+        ('binary', OneHotEncoder(drop='if_binary'), cat_features.columns.tolist()),
         ('num', StandardScaler(), num_features.columns.tolist())
         ],
         remainder='drop',
         verbose_feature_names_out=False
     )
 
-    model = CatBoostClassifier(auto_class_weights='Balanced')
+    model = LogisticRegression(penalty='l2', C=1)
 
     pipeline = Pipeline(
         [
